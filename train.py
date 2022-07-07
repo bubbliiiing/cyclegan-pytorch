@@ -136,7 +136,6 @@ if __name__ == "__main__":
     #------------------------------------------#
     #   将训练好的模型重新载入
     #------------------------------------------#
-    device          = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     if G_model_A2B_path != '':
         pretrained_dict = torch.load(G_model_A2B_path, map_location=device)
         G_model_A2B.load_state_dict(pretrained_dict)

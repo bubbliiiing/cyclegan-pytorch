@@ -8,35 +8,6 @@ import torch
 from PIL import Image
 
 
-def show_result(num_epoch, G_model_A2B_train, G_model_B2A_train, images_A, images_B):
-    with torch.no_grad():
-        fake_image_B = G_model_A2B_train(images_A)
-        fake_image_A = G_model_B2A_train(images_B)
-        
-        fig, ax = plt.subplots(2, 2)
-        
-        ax = ax.flatten()
-        for j in itertools.product(range(4)):
-            ax[j].get_xaxis().set_visible(False)
-            ax[j].get_yaxis().set_visible(False)
-        
-        ax[0].cla()
-        ax[0].imshow(np.transpose(images_A.cpu().numpy()[0] * 0.5 + 0.5, [1, 2, 0]))
-
-        ax[1].cla()
-        ax[1].imshow(np.transpose(fake_image_B.cpu().numpy()[0] * 0.5 + 0.5, [1, 2, 0]))
-
-        ax[2].cla()
-        ax[2].imshow(np.transpose(images_B.cpu().numpy()[0] * 0.5 + 0.5, [1, 2, 0]))
-
-        ax[3].cla()
-        ax[3].imshow(np.transpose(fake_image_A.cpu().numpy()[0] * 0.5 + 0.5, [1, 2, 0]))
-        
-        label = 'Epoch {0}'.format(num_epoch)
-        fig.text(0.5, 0.04, label, ha='center')
-        plt.savefig("results/train_out/epoch_" + str(num_epoch) + "_results.png")
-        plt.close('all')  #避免内存泄漏
-
 #---------------------------------------------------------#
 #   将图像转换成RGB图像，防止灰度图在预测时报错。
 #   代码仅仅支持RGB图像的预测，所有其它类型的图像都会转化成RGB
@@ -75,6 +46,41 @@ def preprocess_input(x):
     x -= 0.5
     x /= 0.5
     return x
+
+def postprocess_output(x):
+    x *= 0.5
+    x += 0.5
+    x *= 255
+    return x
+
+def show_result(num_epoch, G_model_A2B_train, G_model_B2A_train, images_A, images_B):
+    with torch.no_grad():
+        fake_image_B = G_model_A2B_train(images_A)
+        fake_image_A = G_model_B2A_train(images_B)
+        
+        fig, ax = plt.subplots(2, 2)
+        
+        ax = ax.flatten()
+        for j in itertools.product(range(4)):
+            ax[j].get_xaxis().set_visible(False)
+            ax[j].get_yaxis().set_visible(False)
+        
+        ax[0].cla()
+        ax[0].imshow(np.transpose(np.uint8(postprocess_output(images_A.cpu().numpy()[0])), [1, 2, 0]))
+
+        ax[1].cla()
+        ax[1].imshow(np.transpose(np.uint8(postprocess_output(fake_image_B.cpu().numpy()[0])), [1, 2, 0]))
+
+        ax[2].cla()
+        ax[2].imshow(np.transpose(np.uint8(postprocess_output(images_B.cpu().numpy()[0])), [1, 2, 0]))
+
+        ax[3].cla()
+        ax[3].imshow(np.transpose(np.uint8(postprocess_output(fake_image_A.cpu().numpy()[0])), [1, 2, 0]))
+        
+        label = 'Epoch {0}'.format(num_epoch)
+        fig.text(0.5, 0.04, label, ha='center')
+        plt.savefig("results/train_out/epoch_" + str(num_epoch) + "_results.png")
+        plt.close('all')  #避免内存泄漏
 
 def show_config(**kwargs):
     print('Configurations:')

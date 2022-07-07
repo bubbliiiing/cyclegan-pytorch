@@ -5,7 +5,8 @@ from PIL import Image
 from torch import nn
 
 from nets.cyclegan import generator
-from utils.utils import cvtColor, preprocess_input, resize_image, show_config
+from utils.utils import (cvtColor, postprocess_output, preprocess_input,
+                         resize_image, show_config)
 
 
 class CYCLEGAN(object):
@@ -107,7 +108,7 @@ class CYCLEGAN(object):
             #---------------------------------------------------#
             pr = cv2.resize(pr, (orininal_w, orininal_h), interpolation = cv2.INTER_LINEAR)
             
-        image = (pr * 0.5 + 0.5) * 255
+        image = postprocess_output(pr)
         image = Image.fromarray(np.uint8(image))
 
         return image

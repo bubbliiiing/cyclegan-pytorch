@@ -26,7 +26,7 @@ def fit_one_epoch(G_model_A2B_train, G_model_B2A_train, D_model_A_train, D_model
         
         with torch.no_grad():
             if cuda:
-                images_A, images_B, y_real, y_fake  = images_A.cuda(), images_B.cuda(), y_real.cuda(), y_fake.cuda()
+                images_A, images_B, y_real, y_fake  = images_A.cuda(local_rank), images_B.cuda(local_rank), y_real.cuda(local_rank), y_fake.cuda(local_rank)
 
         if not fp16:
             #---------------------------------#
@@ -86,10 +86,6 @@ def fit_one_epoch(G_model_A2B_train, G_model_B2A_train, D_model_A_train, D_model
             D_loss_B = (loss_D_real + loss_D_fake) * 0.5
             D_loss_B.backward()
             D_optimizer_B.step()
-                
-            G_total_loss    += G_loss.item()
-            D_total_loss_A  += D_loss_A.item()
-            D_total_loss_B  += D_loss_B.item()
 
         else:
             from torch.cuda.amp import autocast
@@ -167,9 +163,9 @@ def fit_one_epoch(G_model_A2B_train, G_model_B2A_train, D_model_A_train, D_model
             scaler.step(D_optimizer_B)
             scaler.update()
                 
-            G_total_loss    += G_loss.item()
-            D_total_loss_A  += D_loss_A.item()
-            D_total_loss_B  += D_loss_B.item()
+        G_total_loss    += G_loss.item()
+        D_total_loss_A  += D_loss_A.item()
+        D_total_loss_B  += D_loss_B.item()
 
         if local_rank == 0:
             pbar.set_postfix(**{'G_loss'    : G_total_loss / (iteration + 1), 
@@ -179,7 +175,7 @@ def fit_one_epoch(G_model_A2B_train, G_model_B2A_train, D_model_A_train, D_model
             pbar.update(1)
 
             if iteration % photo_save_step == 0:
-                show_result(epoch + 1, G_model_A2B_train, G_model_B2A_train, images_A, images_B)
+                show_result(epoch + 1, G_model_A2B, G_model_B2A, images_A, images_B)
 
     G_total_loss    = G_total_loss / epoch_step
     D_total_loss_A  = D_total_loss_A / epoch_step
@@ -200,13 +196,6 @@ def fit_one_epoch(G_model_A2B_train, G_model_B2A_train, D_model_A_train, D_model
             torch.save(D_model_A.state_dict(), 'logs/D_model_A_Epoch%d-GLoss%.4f-DALoss%.4f-DBLoss%.4f.pth'%(epoch + 1, G_total_loss, D_total_loss_A, D_total_loss_B))
             torch.save(D_model_B.state_dict(), 'logs/D_model_B_Epoch%d-GLoss%.4f-DALoss%.4f-DBLoss%.4f.pth'%(epoch + 1, G_total_loss, D_total_loss_A, D_total_loss_B))
 
-        if len(loss_history.G_total_loss) <= 1 or G_total_loss <= min(loss_history.G_total_loss):
-            print('Save best model to best_epoch_weights.pth')
-            torch.save(G_model_A2B.state_dict(), os.path.join(save_dir, "G_model_A2B_best_epoch_weights.pth"))
-            torch.save(G_model_B2A.state_dict(), os.path.join(save_dir, "G_model_B2A_best_epoch_weights.pth"))
-            torch.save(D_model_A.state_dict(), os.path.join(save_dir, "D_model_A_best_epoch_weights.pth"))
-            torch.save(D_model_B.state_dict(), os.path.join(save_dir, "D_model_B_best_epoch_weights.pth"))
-        
         torch.save(G_model_A2B.state_dict(), os.path.join(save_dir, "G_model_A2B_last_epoch_weights.pth"))
         torch.save(G_model_B2A.state_dict(), os.path.join(save_dir, "G_model_B2A_last_epoch_weights.pth"))
         torch.save(D_model_A.state_dict(), os.path.join(save_dir, "D_model_A_last_epoch_weights.pth"))
