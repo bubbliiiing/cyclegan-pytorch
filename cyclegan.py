@@ -37,8 +37,7 @@ class CYCLEGAN(object):
         self.__dict__.update(self._defaults)
         for name, value in kwargs.items():
             setattr(self, name, value)  
-            setattr(self._defaults, name, value)  
-            
+            self._defaults[name] = value 
         self.generate()
         
         show_config(**self._defaults)
