@@ -20,10 +20,10 @@ pytorch==1.2.0
 可以通过网盘下载或者通过GITHUB下载。   
 
 权值的网盘地址如下：    
-链接: https://pan.baidu.com/s/1_Prap2rtH63jggJh5ygj5A 提取码: smpi   
+链接: https://pan.baidu.com/s/1mbg-nNX0BuXWff3J4rde3Q 提取码: ykdc    
 
-常用的数据集地址如下：  
-链接: https://pan.baidu.com/s/1xng_uQjyG-8CFMktEXRdEg 提取码: grtm 
+常用的数据集地址如下：   
+链接: https://pan.baidu.com/s/1xng_uQjyG-8CFMktEXRdEg 提取码: grtm     
 
 ## 预测步骤
 ### a、使用预训练权重
